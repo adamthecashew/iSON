@@ -8,6 +8,7 @@ objects from JSON you'll never want to again.
 Currently serializes NSObjects into a JSON string and will deserialize back into NSObjects.
 
 Not working with unnamed JSON Array's (yet).
+Date serialization/deserialization not implemented yet.
 
 You must call iSON registerObjectByPropertyName:forClass for all NSArray's inside of your objects that you want to deserialize.
 Sadly objective-c has no type casting of arrays which is why this partial mapping is required.
