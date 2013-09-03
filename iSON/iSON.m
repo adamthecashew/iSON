@@ -45,6 +45,11 @@ static NSMutableDictionary *arrayTyping;
     return [[iSON sharedInstance] objectFromJSON:JSON forClass:className];
 }
 
++ (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON ForClass:(Class)cls
+{
+    return [[iSON sharedInstance] objectFromUnnamedArrayJSON:JSON ForClass:cls];
+}
+
 #pragma mark -
 #pragma mark - Private instance methods
 
@@ -143,14 +148,24 @@ static NSMutableDictionary *arrayTyping;
 
 #pragma mark -
 #pragma mark - Deserialization of JSON to an object
+- (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON ForClass:(Class)cls
+{
+    NSMutableArray *items = [NSMutableArray new];
+    
+    NSDictionary *jsonDict = [self dictionaryFromJSON:JSON];
+    NSArray *objects = [jsonDict allValues];
+    for (NSDictionary *object in objects) {
+        id item = [self dictionaryToObject:object forClass:NSStringFromClass(cls)];
+        [items addObject:item];
+    }
+    return [NSArray arrayWithArray:items];
+}
+
 - (id)objectFromJSON:(NSString *)JSON forClass:(Class)className
 {
     id newObject = [className new];
-    
-    NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSError *error;
-    NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+
+    NSDictionary *jsonDict = [self dictionaryFromJSON:JSON];
     NSArray *values = [jsonDict allValues];
     NSArray *keys = [jsonDict allKeys];
     
@@ -189,10 +204,7 @@ static NSMutableDictionary *arrayTyping;
     id nestedObject = [NSClassFromString(className) new];
     
     NSString *jsonString = [self jsonToString:JSON];
-    NSData *webData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
-    
-    NSError *error;
-    NSDictionary *jsonDict = [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+    NSDictionary *jsonDict = [self dictionaryFromJSON:jsonString];
     NSArray *values = [jsonDict allValues];
     NSArray *keys = [jsonDict allKeys];
     
@@ -228,6 +240,13 @@ static NSMutableDictionary *arrayTyping;
 
 #pragma mark -
 #pragma mark - Helpers
+- (NSDictionary *)dictionaryFromJSON:(NSString *)JSON
+{
+    NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *error;
+    return [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+}
+
 - (NSString *)findPropertyName:(id)object forKey:(NSString *)key
 {
     objc_property_t prop = class_getProperty([object class], [key UTF8String]);
