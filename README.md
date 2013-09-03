@@ -7,7 +7,6 @@ objects from JSON you'll never want to again.
 
 Currently serializes NSObjects into a JSON string and will deserialize back into NSObjects.
 
-Not working with unnamed JSON Array's (yet).
 Date serialization/deserialization not implemented yet.
 
 You must call iSON registerObjectByPropertyName:forClass for all NSArray's inside of your objects that you want to deserialize.
@@ -21,4 +20,4 @@ If you submit a property as nil it will convert it to null in the JSON string.
 ```objectFromJSON:forClass``` will deserialize your JSON String to an NSObject.  You must specify the class of this object
 for it to deserialize correctly. (THIS METHOD WILL NOT WORK WITH UNNAMED JSON ARRAY'S)
 
-
+```objectFromUnnamedArrayJSON:ForClass:``` will allow you to convert an unnamed JSON Array to an NSArray of objects
