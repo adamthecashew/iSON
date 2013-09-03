@@ -152,8 +152,7 @@ static NSMutableDictionary *arrayTyping;
 {
     NSMutableArray *items = [NSMutableArray new];
     
-    NSDictionary *jsonDict = [self dictionaryFromJSON:JSON];
-    NSArray *objects = [jsonDict allValues];
+    NSArray *objects = [self arrayFromJSON:JSON];
     for (NSDictionary *object in objects) {
         id item = [self dictionaryToObject:object forClass:NSStringFromClass(cls)];
         [items addObject:item];
@@ -241,6 +240,13 @@ static NSMutableDictionary *arrayTyping;
 #pragma mark -
 #pragma mark - Helpers
 - (NSDictionary *)dictionaryFromJSON:(NSString *)JSON
+{
+    NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *error;
+    return [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+}
+
+- (NSArray *)arrayFromJSON:(NSString *)JSON
 {
     NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
     NSError *error;
