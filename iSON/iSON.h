@@ -10,6 +10,6 @@
 + (void)registerObjectByPropertyName:(NSString *)propertyName forClass:(Class)cls;
 + (Class)arrayTypeForPropertyName:(NSString *)propertyName;
 + (NSString *)objectToJSON:(id)object;
-+ (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON ForClass:(Class)cls;
++ (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls;
 + (id)objectFromJSON:(NSString *)JSON forClass:(Class)className;
 @end

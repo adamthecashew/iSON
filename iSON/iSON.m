@@ -7,6 +7,7 @@
 #import <objC/runtime.h>
 
 @implementation iSON
+
 static NSMutableDictionary *arrayTyping;
 
 #pragma mark - create instance to be only created once
@@ -45,9 +46,9 @@ static NSMutableDictionary *arrayTyping;
     return [[iSON sharedInstance] objectFromJSON:JSON forClass:className];
 }
 
-+ (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON ForClass:(Class)cls
++ (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls
 {
-    return [[iSON sharedInstance] objectFromUnnamedArrayJSON:JSON ForClass:cls];
+    return [[iSON sharedInstance] objectFromUnnamedArrayJSON:JSON forClass:cls];
 }
 
 #pragma mark -
@@ -97,15 +98,15 @@ static NSMutableDictionary *arrayTyping;
             } else if ([value isKindOfClass:[NSArray class]]) {
                 NSMutableArray *array = [NSMutableArray new];
                 for (id obj in value) {
-                    [array addObject:[obj toJSONForObject:obj]];
+                    [array addObject:[self toJSONForObject:obj]];
                 }
                 [dict setValue:array forKey:propertyName];
             } else if ([value isKindOfClass:[NSObject class]]) {
-                [dict setValue:[value toJSONForObject:value] forKey:propertyName];
+                [dict setValue:[self toJSONForObject:value] forKey:propertyName];
             } else if (!value) {
                 [dict setValue:[NSNull new] forKey:propertyName];
             } else {
-                @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object was not NSNumber, NSObject, NSArray, NSDictionary" userInfo:nil];
+                @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object was not NSNumber, NSObject, NSArray, NSDictionary or NSString" userInfo:nil];
             }
         }
     }
@@ -131,15 +132,15 @@ static NSMutableDictionary *arrayTyping;
             } else if ([value isKindOfClass:[NSArray class]]) {
                 NSMutableArray *array = [NSMutableArray new];
                 for (id obj in value) {
-                    [array addObject:[obj toJSONForObject:obj]];
+                    [array addObject:[self toJSONForObject:obj]];
                 }
                 [dict setValue:array forKey:propertyName];
             } else if ([value isKindOfClass:[NSObject class]]) {
-                [dict setValue:[value toJSONForObject:value] forKey:propertyName];
+                [dict setValue:[self toJSONForObject:value] forKey:propertyName];
             } else if (!value) {
                 [dict setValue:[NSNull new] forKey:propertyName];
             } else {
-                @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object was not NSNumber, NSObject, NSArray, NSDictionary" userInfo:nil];
+                @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object was not NSNumber, NSObject, NSArray, NSDictionary or NSString" userInfo:nil];
             }
         }
     }
@@ -148,7 +149,7 @@ static NSMutableDictionary *arrayTyping;
 
 #pragma mark -
 #pragma mark - Deserialization of JSON to an object
-- (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON ForClass:(Class)cls
+- (NSArray *)objectfromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls
 {
     NSMutableArray *items = [NSMutableArray new];
     
@@ -163,7 +164,7 @@ static NSMutableDictionary *arrayTyping;
 - (id)objectFromJSON:(NSString *)JSON forClass:(Class)className
 {
     id newObject = [className new];
-
+    
     NSDictionary *jsonDict = [self dictionaryFromJSON:JSON];
     NSArray *values = [jsonDict allValues];
     NSArray *keys = [jsonDict allKeys];
@@ -287,4 +288,5 @@ static NSMutableDictionary *arrayTyping;
         return nil;
     }
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-}@end
+}
+@end
