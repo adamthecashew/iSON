@@ -9,7 +9,7 @@ Currently serializes NSObjects into a JSON string and will deserialize back into
 
 Date serialization/deserialization not implemented yet.
 
-You must call iSON registerObjectByPropertyName:forClass for all NSArray's inside of your objects that you want to deserialize.
+You must call iSON ```registerObjectByPropertyName:forClass``` for all NSArray's inside of your objects that you want to deserialize.
 Sadly objective-c has no type casting of arrays which is why this partial mapping is required.
 If the property name is not found for an NSArray it will throw an exception for you to register it with iSON.
 
