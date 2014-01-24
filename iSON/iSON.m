@@ -8,6 +8,7 @@
 
 @implementation iSON
 
+static NSDateFormatter *dateFormatter;
 static NSMutableDictionary *arrayTyping;
 
 #pragma mark - create instance to be only created once
@@ -49,6 +50,12 @@ static NSMutableDictionary *arrayTyping;
 + (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls
 {
     return [[iSON sharedInstance] objectFromUnnamedArrayJSON:JSON forClass:cls];
+}
+
++ (void)setDateFormatter:(NSString *)dateFormat
+{
+    dateFormatter = [NSDateFormatter new];
+    [dateFormatter setDateFormat:dateFormat];
 }
 
 #pragma mark -
@@ -101,6 +108,8 @@ static NSMutableDictionary *arrayTyping;
                     [array addObject:[self toJSONForObject:obj]];
                 }
                 [dict setValue:array forKey:propertyName];
+            } else if ([value isKindOfClass:[NSDate class]]) {
+                [dict setValue:[self formatDate:value] forKey:propertyName];
             } else if ([value isKindOfClass:[NSObject class]]) {
                 [dict setValue:[self toJSONForObject:value] forKey:propertyName];
             } else if (!value) {
@@ -135,6 +144,8 @@ static NSMutableDictionary *arrayTyping;
                     [array addObject:[self toJSONForObject:obj]];
                 }
                 [dict setValue:array forKey:propertyName];
+            } else if ([value isKindOfClass:[NSDate class]]) {
+                [dict setValue:[self formatDate:value] forKey:propertyName];
             } else if ([value isKindOfClass:[NSObject class]]) {
                 [dict setValue:[self toJSONForObject:value] forKey:propertyName];
             } else if (!value) {
@@ -192,7 +203,8 @@ static NSMutableDictionary *arrayTyping;
                     [newObject setValue:[NSArray arrayWithArray:muteArray] forKey:key];
                 }
             } else {
-                [newObject setValue:value forKey:key];
+                NSDate *date = [self dateFromString:value];
+                [newObject setValue:(date ? date : value) forKey:key];
             }
         }
     }
@@ -289,4 +301,23 @@ static NSMutableDictionary *arrayTyping;
     }
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
+
+- (NSString *)formatDate:(NSDate *)date
+{
+    if (!dateFormatter) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss a"];
+    }
+    return [dateFormatter stringFromDate:date];
+}
+
+- (NSDate *)dateFromString:(NSString *)date
+{
+    if (!dateFormatter) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss a"];
+    }
+    return [dateFormatter dateFromString:date];
+}
+
 @end

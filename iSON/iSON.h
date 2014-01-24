@@ -7,9 +7,12 @@
 #import <Foundation/Foundation.h>
 
 @interface iSON : NSObject
+
 + (void)registerObjectByPropertyName:(NSString *)propertyName forClass:(Class)cls;
 + (Class)arrayTypeForPropertyName:(NSString *)propertyName;
 + (NSString *)objectToJSON:(id)object;
 + (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls;
 + (id)objectFromJSON:(NSString *)JSON forClass:(Class)className;
++ (void)setDateFormatter:(NSString *)dateFormat;
+
 @end
