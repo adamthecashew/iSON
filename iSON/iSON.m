@@ -92,6 +92,9 @@ static NSMutableDictionary *arrayTyping;
     Class class = [object class];
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     
+    Class superClass = class_getSuperclass(class);
+    [self addSuperClass:superClass toDictionary:dict forObject:object];
+    
     unsigned int outCount, i;
     objc_property_t *properties = class_copyPropertyList(class, &outCount);
     for (i = 0; i < outCount; i++) {
@@ -120,8 +123,39 @@ static NSMutableDictionary *arrayTyping;
         }
     }
     NSError *jsonError = nil;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:&jsonError];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:&jsonError];
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+}
+
+- (void)addSuperClass:(Class)class toDictionary:(NSMutableDictionary *)dict forObject:(id)object
+{
+    unsigned int outCount, i;
+    objc_property_t *properties = class_copyPropertyList(class, &outCount);
+    for (i = 0; i < outCount; i++) {
+        objc_property_t property = properties[i];
+        NSString *propertyName = [NSString stringWithCString:property_getName(property) encoding:NSUTF8StringEncoding];
+        SEL propertySelector = NSSelectorFromString(propertyName);
+        if ([object respondsToSelector:propertySelector]) {
+            id value = [object performSelector:propertySelector];
+            if ([value isKindOfClass:[NSNumber class]] || [value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSDictionary class]] || [value isMemberOfClass:[NSNumber class]]) {
+                [dict setValue:value forKey:propertyName];
+            } else if ([value isKindOfClass:[NSArray class]]) {
+                NSMutableArray *array = [NSMutableArray new];
+                for (id obj in value) {
+                    [array addObject:[self toJSONForObject:obj]];
+                }
+                [dict setValue:array forKey:propertyName];
+            } else if ([value isKindOfClass:[NSDate class]]) {
+                [dict setValue:[self formatDate:value] forKey:propertyName];
+            } else if ([value isKindOfClass:[NSObject class]]) {
+                [dict setValue:[self toJSONForObject:value] forKey:propertyName];
+            } else if (!value) {
+                [dict setValue:[NSNull new] forKey:propertyName];
+            } else {
+                @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Object was not NSNumber, NSObject, NSArray, NSDictionary or NSString" userInfo:nil];
+            }
+        }
+    }
 }
 
 - (NSMutableDictionary *)toJSONForObject:(id)object
@@ -243,7 +277,12 @@ static NSMutableDictionary *arrayTyping;
                     [nestedObject setValue:[NSArray arrayWithArray:muteArray] forKey:key];
                 }
             } else {
-                [nestedObject setValue:value forKey:key];
+                if ([value isKindOfClass:[NSNumber class]]) {
+                    [nestedObject setValue:value forKey:key];
+                } else {
+                    NSDate *date = [self dateFromString:value];
+                    [nestedObject setValue:(date ? date : value) forKey:key];
+                }
             }
         }
     }
@@ -256,14 +295,14 @@ static NSMutableDictionary *arrayTyping;
 {
     NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
     NSError *error;
-    return [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+    return [NSJSONSerialization JSONObjectWithData:webData options:NSJSONReadingMutableContainers error:&error];
 }
 
 - (NSArray *)arrayFromJSON:(NSString *)JSON
 {
     NSData *webData = [JSON dataUsingEncoding:NSUTF8StringEncoding];
     NSError *error;
-    return [NSJSONSerialization JSONObjectWithData:webData options:0 error:&error];
+    return [NSJSONSerialization JSONObjectWithData:webData options:NSJSONReadingMutableContainers error:&error];
 }
 
 - (NSString *)findPropertyName:(id)object forKey:(NSString *)key
@@ -306,7 +345,7 @@ static NSMutableDictionary *arrayTyping;
 {
     if (!dateFormatter) {
         dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss a"];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mmZ"];
     }
     return [dateFormatter stringFromDate:date];
 }
@@ -315,7 +354,7 @@ static NSMutableDictionary *arrayTyping;
 {
     if (!dateFormatter) {
         dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"yyyy-MM-dd hh:mm:ss a"];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mmZ"];
     }
     return [dateFormatter dateFromString:date];
 }
