@@ -160,6 +160,10 @@ static NSMutableDictionary *arrayTyping;
 
 - (void)addSuperClass:(Class)class toDictionary:(NSMutableDictionary *)dict forObject:(id)object
 {
+    if (class == [NSObject class]) {
+        return;
+    }
+    
     unsigned int outCount, i;
     objc_property_t *properties = class_copyPropertyList(class, &outCount);
     for (i = 0; i < outCount; i++) {
