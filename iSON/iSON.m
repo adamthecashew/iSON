@@ -52,10 +52,28 @@ static NSMutableDictionary *arrayTyping;
     return [[iSON sharedInstance] objectFromUnnamedArrayJSON:JSON forClass:cls];
 }
 
++ (NSString *)arrayToJSON:(NSArray *)items
+{
+    return [[iSON sharedInstance] arrayToJSON:items];
+}
+
 + (void)setDateFormatter:(NSString *)dateFormat
 {
     dateFormatter = [NSDateFormatter new];
     [dateFormatter setDateFormat:dateFormat];
+}
+
++ (NSString *)dictionaryToJSON:(NSDictionary *)dict
+{
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:&error];
+    
+    if (error) {
+        NSLog(@"Unable to create json string from dictionary. Error - %@", [error localizedDescription]);
+        return nil;
+    }
+    
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
 
 #pragma mark -
@@ -87,6 +105,19 @@ static NSMutableDictionary *arrayTyping;
 
 #pragma mark -
 #pragma mark - Serialization of an object to JSON
+- (NSString *)arrayToJSON:(NSArray *)items
+{
+    NSMutableArray *array = [NSMutableArray new];
+    
+    for (id object in items) {
+        NSDictionary *dict = [self toJSONForObject:object];
+        [array addObject:dict];
+    }
+    
+    NSError *jsonError = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:array options:NSJSONWritingPrettyPrinted error:&jsonError];
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+}
 - (NSString *)objectToJSON:(id)object
 {
     Class class = [object class];
@@ -222,7 +253,12 @@ static NSMutableDictionary *arrayTyping;
         if ([newObject respondsToSelector:propertySelector]) {
             if ([value isKindOfClass:[NSDictionary class]]) {
                 NSString *classType = [self findClassType:newObject forKey:key];
-                [newObject setValue:[self dictionaryToObject:value forClass:classType] forKey:key];
+                Class class = NSClassFromString(classType);
+                if (class == [NSDictionary class]) {
+                    [newObject setValue:value forKeyPath:key];
+                } else {
+                    [newObject setValue:[self dictionaryToObject:value forClass:classType] forKey:key];
+                }
             } else if ([value isKindOfClass:[NSArray class]]) {
                 NSString *name = [self findPropertyName:newObject forKey:key];
                 NSString *class = [self findClassType:newObject forKey:key];
@@ -237,8 +273,12 @@ static NSMutableDictionary *arrayTyping;
                     [newObject setValue:[NSArray arrayWithArray:muteArray] forKey:key];
                 }
             } else {
-                NSDate *date = [self dateFromString:value];
-                [newObject setValue:(date ? date : value) forKey:key];
+                if ([value isKindOfClass:[NSNumber class]]) {
+                    [newObject setValue:value forKey:key];
+                } else {
+                    NSDate *date = [self dateFromString:value];
+                    [newObject setValue:(date ? date : value) forKey:key];
+                }
             }
         }
     }

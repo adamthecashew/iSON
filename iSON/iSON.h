@@ -12,7 +12,9 @@
 + (Class)arrayTypeForPropertyName:(NSString *)propertyName;
 + (NSString *)objectToJSON:(id)object;
 + (NSArray *)objectFromUnnamedArrayJSON:(NSString *)JSON forClass:(Class)cls;
++ (NSString *)arrayToJSON:(NSArray *)items;
 + (id)objectFromJSON:(NSString *)JSON forClass:(Class)className;
 + (void)setDateFormatter:(NSString *)dateFormat;
++ (NSString *)dictionaryToJSON:(NSDictionary *)dict;
 
 @end
